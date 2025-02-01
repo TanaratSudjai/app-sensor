@@ -28,7 +28,7 @@ const SensorDashboard = () => {
           "https://raw.githubusercontent.com/Thitareeee/mock-senser-data/main/sensor_mock_data_varied_errors.json"
         );
         setData(response.data);
-        filterData(response.data, "24 ชั่วโมง"); // เริ่มต้นด้วย 24 ชั่วโมง
+        filterData(response.data, "24 ชั่วโมง");
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -42,7 +42,6 @@ const SensorDashboard = () => {
   const filterData = (sensorData, timeRange) => {
     if (!sensorData || sensorData.length === 0) return;
 
-    // หาวันที่ล่าสุดในข้อมูล
     const latestTimestamp = Math.max(
       ...sensorData.map((entry) => new Date(entry.timestamp).getTime())
     );
@@ -70,7 +69,6 @@ const SensorDashboard = () => {
         (entry) => new Date(entry.timestamp) >= last30Days
       );
     } else {
-      // "ทั้งหมด"
       filtered = sensorData;
     }
 
@@ -93,8 +91,6 @@ const SensorDashboard = () => {
       </View>
     );
   }
-
-  // ใช้ for loop แทน map เพื่อสร้างข้อมูลสำหรับกราฟ
   const graphData = [];
   for (let i = 0; i < filteredData.length; i++) {
     graphData.push(filteredData[i][selectedVariable]);
@@ -102,10 +98,8 @@ const SensorDashboard = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Header */}
       <Text style={styles.header}>ระบบตรวจจับความผิดปกติของเซ็นเซอร์</Text>
 
-      {/* Time Range Selection */}
       <View style={styles.timeRangeContainer}>
         {["24 ชั่วโมง", "7 วัน", "30 วัน", "ทั้งหมด"].map((range) => (
           <TouchableOpacity
@@ -128,7 +122,6 @@ const SensorDashboard = () => {
         ))}
       </View>
 
-      {/* Variable Selection */}
       <View style={styles.variableContainer}>
         {[
           { label: "อุณหภูมิ (°C)", key: "temperature" },
@@ -161,14 +154,13 @@ const SensorDashboard = () => {
         ))}
       </View>
 
-      {/* Line Chart */}
       <View style={styles.chartContainer}>
         <LineChart
           data={{
-            labels: filteredData.map((entry) => entry.time), // ใช้ map สำหรับ labels
+            labels: filteredData.map((entry) => entry.time),
             datasets: [
               {
-                data: graphData, // ใช้ข้อมูลจาก for loop
+                data: graphData,
                 color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`,
               },
             ],
