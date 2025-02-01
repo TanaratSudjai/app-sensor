@@ -40,21 +40,32 @@ const SensorDashboard = () => {
   }, []);
 
   const filterData = (sensorData, timeRange) => {
-    const now = new Date();
+    if (!sensorData || sensorData.length === 0) return;
+
+    // หาวันที่ล่าสุดในข้อมูล
+    const latestTimestamp = Math.max(
+      ...sensorData.map((entry) => new Date(entry.timestamp).getTime())
+    );
+    const latestDate = new Date(latestTimestamp);
+
     let filtered = [];
 
     if (timeRange === "24 ชั่วโมง") {
-      const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const last24Hours = new Date(latestDate.getTime() - 24 * 60 * 60 * 1000);
       filtered = sensorData.filter(
         (entry) => new Date(entry.timestamp) >= last24Hours
       );
     } else if (timeRange === "7 วัน") {
-      const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const last7Days = new Date(
+        latestDate.getTime() - 7 * 24 * 60 * 60 * 1000
+      );
       filtered = sensorData.filter(
         (entry) => new Date(entry.timestamp) >= last7Days
       );
     } else if (timeRange === "30 วัน") {
-      const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const last30Days = new Date(
+        latestDate.getTime() - 30 * 24 * 60 * 60 * 1000
+      );
       filtered = sensorData.filter(
         (entry) => new Date(entry.timestamp) >= last30Days
       );
