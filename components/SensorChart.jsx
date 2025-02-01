@@ -91,10 +91,14 @@ const SensorDashboard = () => {
       </View>
     );
   }
-  const graphData = [];
-  for (let i = 0; i < filteredData.length; i++) {
-    graphData.push(filteredData[i][selectedVariable]);
-  }
+
+  const graphData = filteredData
+    .filter((entry) => entry[selectedVariable] !== undefined)
+    .map((entry) => entry[selectedVariable]);
+
+  const graphLabels = filteredData
+    .filter((entry) => entry.time !== undefined)
+    .map((entry) => entry.time);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -157,7 +161,7 @@ const SensorDashboard = () => {
       <View style={styles.chartContainer}>
         <LineChart
           data={{
-            labels: filteredData.map((entry) => entry.time),
+            labels: graphLabels,
             datasets: [
               {
                 data: graphData,
