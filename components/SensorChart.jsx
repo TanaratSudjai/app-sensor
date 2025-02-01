@@ -94,11 +94,14 @@ const SensorDashboard = () => {
     );
   }
 
-  // ใช้ for loop แทน map เพื่อสร้างข้อมูลสำหรับกราฟ
-  const graphData = [];
-  for (let i = 0; i < filteredData.length; i++) {
-    graphData.push(filteredData[i][selectedVariable]);
-  }
+  // กรอง undefined ก่อนสร้างกราฟ
+  const graphData = filteredData
+    .filter((entry) => entry[selectedVariable] !== undefined) // กรองค่าที่ undefined
+    .map((entry) => entry[selectedVariable]); // สร้างข้อมูลกราฟ
+
+  const graphLabels = filteredData
+    .filter((entry) => entry.time !== undefined) // กรองค่าที่ undefined
+    .map((entry) => entry.time); // สร้าง labels กราฟ
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -165,10 +168,10 @@ const SensorDashboard = () => {
       <View style={styles.chartContainer}>
         <LineChart
           data={{
-            labels: filteredData.map((entry) => entry.time), // ใช้ map สำหรับ labels
+            labels: graphLabels, // ใช้ graphLabels หลังกรอง
             datasets: [
               {
-                data: graphData, // ใช้ข้อมูลจาก for loop
+                data: graphData, // ใช้ graphData หลังกรอง
                 color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`,
               },
             ],
