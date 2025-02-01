@@ -15,6 +15,7 @@ const screenWidth = Dimensions.get("window").width;
 
 const SensorDashboard = () => {
   const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTimeRange, setSelectedTimeRange] = useState("24 ชั่วโมง");
   const [selectedVariable, setSelectedVariable] = useState("temperature");
@@ -26,8 +27,8 @@ const SensorDashboard = () => {
         const response = await axios.get(
           "https://raw.githubusercontent.com/Thitareeee/mock-senser-data/main/sensor_mock_data_varied_errors.json"
         );
-        const processedData = processSensorData(response.data);
-        setData(processedData);
+        setData(response.data);
+        filterData(response.data, "24 ชั่วโมง"); // เริ่มต้นด้วย 24 ชั่วโมง
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -38,37 +39,36 @@ const SensorDashboard = () => {
     fetchData();
   }, []);
 
-  const processSensorData = (sensorData) => {
-    if (!Array.isArray(sensorData)) {
-      console.error("Invalid data format:", sensorData);
-      return [];
+  const filterData = (sensorData, timeRange) => {
+    const now = new Date();
+    let filtered = [];
+
+    if (timeRange === "24 ชั่วโมง") {
+      const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      filtered = sensorData.filter(
+        (entry) => new Date(entry.timestamp) >= last24Hours
+      );
+    } else if (timeRange === "7 วัน") {
+      const last7Days = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      filtered = sensorData.filter(
+        (entry) => new Date(entry.timestamp) >= last7Days
+      );
+    } else if (timeRange === "30 วัน") {
+      const last30Days = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      filtered = sensorData.filter(
+        (entry) => new Date(entry.timestamp) >= last30Days
+      );
+    } else {
+      // "ทั้งหมด"
+      filtered = sensorData;
     }
 
-    // กรองข้อมูลตามช่วงเวลา (ตัวอย่าง: 24 ชั่วโมง)
-    const filteredData = sensorData.filter((entry) => {
-      // ตัวอย่าง: กรองข้อมูลเฉพาะ 24 ชั่วโมงล่าสุด
-      if (selectedTimeRange === "24 ชั่วโมง") {
-        // เพิ่มเงื่อนไขการกรองตามเวลา
-        return true; // แทนที่ด้วยเงื่อนไขจริง
-      }
-      return true;
-    });
-
-    return filteredData.map((entry) => ({
-      time: entry.time || "Unknown",
-      temperature: entry.temperature || 0,
-      humidity: entry.humidity || 0,
-      co2: entry.co2 || 0,
-      ec: entry.ec || 0,
-      pH: entry.pH || 0,
-      vpo: entry.vpo || 0,
-      dewPoint: entry.dewPoint || 0,
-    }));
+    setFilteredData(filtered);
   };
 
   const handleTimeRangeChange = (range) => {
     setSelectedTimeRange(range);
-    // คุณสามารถเพิ่มการกรองข้อมูลตามช่วงเวลาได้ที่นี่
+    filterData(data, range);
   };
 
   const handleVariableChange = (variable) => {
@@ -81,6 +81,12 @@ const SensorDashboard = () => {
         <ActivityIndicator size="large" color="#007bff" />
       </View>
     );
+  }
+
+  // ใช้ for loop แทน map เพื่อสร้างข้อมูลสำหรับกราฟ
+  const graphData = [];
+  for (let i = 0; i < filteredData.length; i++) {
+    graphData.push(filteredData[i][selectedVariable]);
   }
 
   return (
@@ -148,10 +154,10 @@ const SensorDashboard = () => {
       <View style={styles.chartContainer}>
         <LineChart
           data={{
-            labels: data.map((entry) => entry.time),
+            labels: filteredData.map((entry) => entry.time), // ใช้ map สำหรับ labels
             datasets: [
               {
-                data: data.map((entry) => entry[selectedVariable]),
+                data: graphData, // ใช้ข้อมูลจาก for loop
                 color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`,
               },
             ],
