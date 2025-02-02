@@ -5,7 +5,7 @@ import SensorChart from "../components/SensorChart";
 const HomeScreen = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Sensor Datas</Text>
+      <Text style={styles.header}>ข้อมูลจาก เซ็นเซอร์</Text>
       <SensorChart />
     </View>
   );
