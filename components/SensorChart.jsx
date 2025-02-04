@@ -21,7 +21,7 @@ const SensorDashboard = () => {
           "https://raw.githubusercontent.com/Thitareeee/mock-senser-data/main/sensor_mock_data_varied_errors.json"
         );
         setData(response.data);
-        filterData(response.data, "24 ชั่วโมง"); // เริ่มต้นด้วย 24 ชั่วโมง
+        filterData(response.data, "24 ชั่วโมง");
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -35,7 +35,6 @@ const SensorDashboard = () => {
   const filterData = (sensorData, timeRange) => {
     if (!sensorData || sensorData.length === 0) return;
 
-    // หาวันที่ล่าสุดในข้อมูล
     const latestTimestamp = Math.max(...sensorData.map((entry) => new Date(entry.timestamp).getTime()));
     const latestDate = new Date(latestTimestamp);
 
@@ -51,11 +50,8 @@ const SensorDashboard = () => {
       const last30Days = new Date(latestDate.getTime() - 30 * 24 * 60 * 60 * 1000);
       filtered = sensorData.filter((entry) => new Date(entry.timestamp) >= last30Days);
     } else {
-      // "ทั้งหมด"
       filtered = sensorData;
     }
-
-
 
     setFilteredData(filtered);
   };
@@ -73,6 +69,27 @@ const SensorDashboard = () => {
     .filter((entry) => entry.time !== undefined)
     .map((entry) => entry.time);
 
+  const prepareChartData = () => {
+    const normalData = [];
+    const zeroData = [];
+
+    filteredData.forEach((entry) => {
+      const value = entry[selectedVariable];
+      if (value === 0) {
+        normalData.push(null);
+        zeroData.push(value);
+      } else {
+        normalData.push(value);
+        zeroData.push(null);
+      }
+    });
+
+    return {
+      normalData,
+      zeroData,
+    };
+  };
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -81,18 +98,10 @@ const SensorDashboard = () => {
     );
   }
 
-  // ใช้ for loop แทน map เพื่อสร้างข้อมูลสำหรับกราฟ
-  const graphData = [];
-  for (let i = 0; i < filteredData.length; i++) {
-    graphData.push(filteredData[i][selectedVariable]);
-  }
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Header */}
       <Text style={styles.header}>ระบบตรวจจับความผิดปกติของเซ็นเซอร์</Text>
 
-      {/* Time Range Selection */}
       <View style={styles.timeRangeContainer}>
         {["24 ชั่วโมง", "7 วัน", "30 วัน", "ทั้งหมด"].map((range) => (
           <TouchableOpacity
@@ -115,7 +124,6 @@ const SensorDashboard = () => {
         ))}
       </View>
 
-      {/* Variable Selection */}
       <View style={styles.variableContainer}>
         {[
           { label: "อุณหภูมิ (°C)", key: "temperature" },
@@ -146,7 +154,6 @@ const SensorDashboard = () => {
         ))}
       </View>
 
-      {/* Scrollable Line Chart */}
       <ScrollView horizontal>
         <View style={styles.chartContainer}>
           <LineChart
@@ -154,25 +161,39 @@ const SensorDashboard = () => {
               labels: graphLabels,
               datasets: [
                 {
-                  data: graphData, // ใช้ข้อมูลจาก for loop
+                  data: prepareChartData().normalData,
                   color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`,
+                  strokeWidth: 2,
+                },
+                {
+                  data: prepareChartData().zeroData,
+                  color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`,
+                  strokeWidth: 2,
                 },
               ],
             }}
-            width={screenWidth * 2} // กำหนดความกว้างของกราฟให้ยาวกว่าหน้าจอ
+            width={screenWidth * 2}
             height={300}
             chartConfig={{
               backgroundColor: "#fff",
               backgroundGradientFrom: "#fff",
               backgroundGradientTo: "#fff",
+              decimalPlaces: 0,
               color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
               labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
               style: {
                 borderRadius: 16,
               },
+              propsForDots: {
+                r: "6",
+                strokeWidth: "2",
+              },
             }}
             bezier
-            style={{ marginVertical: 8, borderRadius: 16 }}
+            style={{
+              marginVertical: 8,
+              borderRadius: 16,
+            }}
           />
         </View>
       </ScrollView>
@@ -239,5 +260,6 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
 });
+
 
 export default SensorDashboard;
